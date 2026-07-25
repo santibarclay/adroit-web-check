@@ -32,10 +32,16 @@ const safeBrowsing = async (url) => {
 };
 
 const urlHaus = async (url) => {
+  // abuse.ch requires an Auth-Key since 2024 — anonymous requests get HTTP 401
+  const auth = requireEnv('URLHAUS_API_KEY', 'URLhaus');
+  if (auth.skipped) return auth;
   const { hostname } = parseTarget(url);
   try {
     const res = await httpPost('https://urlhaus-api.abuse.ch/v1/host/', `host=${hostname}`, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Auth-Key': auth.value,
+      },
     });
     return res.data;
   } catch (error) {
